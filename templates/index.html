@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sensor Data</title>
+    <style>
+        /* Grundläggande stil för att centrera sidan och layouten */
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        /* Flex-container för att visa tabell och diagram sida vid sida på bredare skärmar */
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        /* Tabellen - Minskad bredd */
+        #table-container {
+            width: 100%;
+            max-width: 400px; /* Justerad maxbredd för att göra tabellen mindre */
+            border-collapse: collapse;
+            background-color: white;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+        }
+
+        th, td {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+
+        /* För diagrammet - Ökad bredd */
+        .chart-container {
+            width: 100%;
+            max-width: 800px;  /* Ökad maxbredd för större graf */
+            padding: 10px;
+        }
+
+        /* Gör layouten responsiv för breda skärmar */
+        @media(min-width: 768px) {
+            .container {
+                flex-direction: row;
+                align-items: flex-start;
+                justify-content: space-between;
+            }
+            #table-container {
+                width: 35%; /* Tabellens andel av utrymmet */
+            }
+            .chart-container {
+                width: 65%; /* Diagrammets andel av utrymmet */
+            }
+        }
+    </style>
+    <!-- Länk till Chart.js från CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>DHT11 Sensor Data</h1>
+    <div class="container">
+        <!-- Tabellen -->
+        <div id="table-container">
+            <table>
+                <tr>
+                    <th>ID</th>
+                    <th>Timestamp</th>
+                    <th>Temperature (°C)</th>
+                    <th>Humidity (%)</th>
+                </tr>
+                {% for row in data %}
+                <tr>
+                    <td>{{ row[0] }}</td>
+                    <td>{{ row[1] }}</td>
+                    <td>{{ row[2] }}</td>
+                    <td>{{ row[3] }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <!-- Diagramdel -->
+        <div class="chart-container">
+            <canvas id="sensorChart" width="800" height="400"></canvas> <!-- Dubbelt så stor graf -->
+        </div>
+    </div>
+
+    <!-- JavaScript för att skapa och uppdatera diagrammet -->
+    <script>
+        let chart; // Variabel för att lagra diagramobjektet
+
+        async function fetchData() {
+            const response = await fetch('/data');
+            const data = await response.json();
+            return data;
+        }
+
+        async function createChart() {
+            const data = await fetchData();
+            const ctx = document.getElementById('sensorChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.timestamps,
+                    datasets: [
+                        {
+                            label: 'Temperature (°C)',
+                            data: data.temperatures,
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            fill: true,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Humidity (%)',
+                            data: data.humidities,
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            fill: true,
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Timestamp'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Value'
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        async function updateChart() {
+            const data = await fetchData();
+            chart.data.labels = data.timestamps;
+            chart.data.datasets[0].data = data.temperatures;
+            chart.data.datasets[1].data = data.humidities;
+            chart.update();
+        }
+
+        window.onload = createChart;
+        setInterval(updateChart, 10000);
+    </script>
+
+    <!-- Automatisk uppdatering av tabellen utan att ladda om hela sidan -->
+    <script>
+        setInterval(() => {
+            fetch('/').then(response => response.text()).then(html => {
+                const tableContainer = document.getElementById('table-container');
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newTable = doc.querySelector('#table-container').innerHTML;
+                tableContainer.innerHTML = newTable;
+            });
+        }, 10000); // 10000 millisekunder = 10 sekunder
+    </script>
+
+</body>
+</html>
