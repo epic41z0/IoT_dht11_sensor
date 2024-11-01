@@ -33,7 +33,7 @@ This project demonstrates how to use the DHT11 sensor to monitor temperature and
     - Paho-mqtt
     - sqlite3 
 
-    ![DHT11 Connection Diagram](images/sensor_diagram.png)
+    ![DHT11 Connection Diagram](images/sensor_diagram.PNG)
 
 ## Setup Instructions
 # 1.Install required libraries:
@@ -41,7 +41,7 @@ This project demonstrates how to use the DHT11 sensor to monitor temperature and
 pip install Adafruit_DHT paho-mqtt
 ```
 # 2.Connect the DHT11 sensor to the microcontroller as shown in the diagram:
-![Hardware connection](images/rasp_Sensor.png)
+![Hardware connection](images/rasp_Sensor.jpg)
 # 3.Configure MQTT broker settings in the code
 # 4.Create SQLite database:
 ```sql
@@ -122,7 +122,7 @@ finally:
 ## Visualization
 Once the data is being sent to your IoT platform, you can visualize it using graphs and charts:
 
-![IoT Dashboard](images/senasteVersionen_DHT11.png)
+![IoT Dashboard](images/senasteVersionen_DHT11.PNG)
 
 ## Troubleshooting
 - Verify all wire connections
